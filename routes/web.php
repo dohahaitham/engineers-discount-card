@@ -19,7 +19,9 @@ Route::get('/clear-cache', function () {
 */
 
 // 🌐 1️⃣ المسارات العامة للجمهور (تصفح المحلات والخصومات والبحث)
-Route::get('/', [ShopController::class, 'adminDashboard'])->name('admin.dashboard');
+Route::get('/', function () {
+        return view('welcome');
+})
 
 // 🔑 2️⃣ مسارات تسجيل الدخول والخروج الخاصة بالمسؤول
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
