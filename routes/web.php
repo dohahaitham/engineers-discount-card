@@ -40,4 +40,10 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
 
     // استيراد المحلات من ملف CSV
     Route::post('/shops/import-csv', [ShopController::class, 'importCSV']);
+    // 1️⃣ المسارات العامة للجمهور (الصفحة الرئيسية وتصفح المحلات)
+    Route::get('/', function () {
+        return view('welcome');
+        })->name('home'); // جعلنا الصفحة الرئيسية اسمها home
+
+        Route::get('/discounts', [ShopController::class, 'index'])->name('shops.index'); // مسار الخصومات والمحلات
 });
