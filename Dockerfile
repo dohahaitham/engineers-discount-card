@@ -1,29 +1,26 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
-# تثبيت الحزم والمكتبات الضرورية
+# تثبيت الأدوات والمكتبات الأساسية للضغط والبيئة
 RUN apt-get update && apt-get install -y \
     git \
-    curl \
+    unzip \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
-    unzip \
-    nginx
+    && docker-php-ext-install pdo pdo_mysql mbstring gd zip
 
-# تثبيت امتدادات PHP
-RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd
-
-# تثبيت Composer
+# جلب كنسول Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /app
+COPY . .
 
-COPY . /var/www
+# تثبيت حزم المشروع وتجاوز متطلبات الامتدادات الصارمة
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
-RUN composer install --no-dev --optimize-autoloader
+EXPOSE 10000
 
-# ضبط المجلد العام للارافيل
-EXPOSE 80
-
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=80
+# تشغيل سيرفر لارافيل
+CMD php artisan serve --host=0.0.0.0 --port=10000
