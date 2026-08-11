@@ -16,7 +16,9 @@ use App\Models\Shop;
 Route::get('/', function () {
     $totalShopsCount = Shop::count();
 
-    return view('welcome', compact('totalShopsCount'));
+    $shops = Shop::latest()->take(3)->get();
+
+    return view('welcome', compact('totalShopsCount', 'shops'));
 })->name('home');
 
 // 2️⃣ صفحة عرض المحلات والخصومات للجمهور
