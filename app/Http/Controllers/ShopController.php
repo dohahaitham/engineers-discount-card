@@ -20,7 +20,8 @@ class ShopController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%");
             });
         }
 
@@ -73,7 +74,12 @@ class ShopController extends Controller
             'discount' => 'required|string|max:255',
             'phone'    => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
+            'address'  => 'nullable|string|max:255',
         ]);
+
+        // ضمان عدم وجود قيمة فارغة لـ address أو location
+        $validated['address']  = $validated['address'] ?? $validated['location'] ?? 'غير محدد';
+        $validated['location'] = $validated['location'] ?? $validated['address'] ?? 'غير محدد';
 
         Shop::create($validated);
 
@@ -99,6 +105,7 @@ class ShopController extends Controller
             'discount' => 'required|string|max:255',
             'phone'    => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
+            'address'  => 'nullable|string|max:255',
         ]);
 
         $shop->update($validated);
@@ -166,7 +173,7 @@ class ShopController extends Controller
                 $name     = $row[0] ?? null; // العمود A: اسم المحل
                 $category = $row[1] ?? 'عام'; // العمود B: التصنيفات
                 $discount = $row[2] ?? 'خصم خاص'; // العمود C: نسبة الخصم
-                $location = $row[3] ?? null; // العمود D: العنوان
+                $location = $row[3] ?? 'غير محدد'; // العمود D: العنوان
                 $details  = $row[4] ?? null; // العمود E: تفاصيل الخصم
 
                 // دمج نسبة الخصم مع تفاصيل الخصم إن وُجدت
@@ -180,8 +187,10 @@ class ShopController extends Controller
                         'name'     => trim($name),
                         'category' => trim($category),
                         'discount' => $fullDiscount,
-                        'location' => $location ? trim($location) : null,
+                        'address'  => trim($location) ?: 'غير محدد', // حل مشكلة NOT NULL address
+                        'location' => trim($location) ?: 'غير محدد',
                         'phone'    => null,
+                        'details'  => $details ? trim($details) : null,
                     ]);
                     $importedCount++;
                 }
