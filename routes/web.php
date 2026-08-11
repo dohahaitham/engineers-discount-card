@@ -11,28 +11,26 @@ use App\Models\Shop;
 |--------------------------------------------------------------------------
 */
 
-
 // 1️⃣ الصفحة الرئيسية
 Route::get('/', function () {
     $totalShopsCount = Shop::count();
-
-    $shops = Shop::latest()->take(3)->get();
+    $shops = Shop::latest()->take(6)->get();
 
     return view('welcome', compact('totalShopsCount', 'shops'));
 })->name('home');
 
-// 2️⃣ صفحة عرض المحلات والخصومات للجمهور
+// 2️⃣ صفحة عرض جميع المحلات والخصومات للجمهور
 Route::get('/discounts', [ShopController::class, 'index'])->name('shops.index');
 
-// 3️⃣ مسارات تسجيل الدخول والخروج
+// 3️⃣ مسارات تسجيل الدخول والخروج الخاصة بالإدارة
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// 4️⃣ مسارات لوحة التحكم محمية بحساب الإدارة
+// 4️⃣ مسارات لوحة التحكم (محمية بجدار الحماية admin.auth)
 Route::middleware('admin.auth')->prefix('admin')->group(function () {
     
-    // عرض الداشبورد الرئيسي
+    // عرض لوحة التحكم الرئيسية
     Route::get('/dashboard', [ShopController::class, 'adminDashboard'])->name('admin.dashboard');
 
     // إضافة محل جديد
@@ -47,6 +45,6 @@ Route::middleware('admin.auth')->prefix('admin')->group(function () {
     Route::delete('/shops/{shop}', [ShopController::class, 'destroy'])->name('shops.destroy');
     Route::post('/shops/destroy-multiple', [ShopController::class, 'destroyMultiple'])->name('shops.destroyMultiple');
 
-    // استيراد المحلات من ملف CSV (تمت إضافة الاسم المفقود هنا)
+    // استيراد المحلات من ملف CSV
     Route::post('/shops/import-csv', [ShopController::class, 'importCSV'])->name('shops.importCsv');
 });
