@@ -4,60 +4,58 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Shop;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ShopController extends Controller
 {
     /**
-     *  عرض صفحة الخصومات والمحلات للجمهور (تظهر كافة المحلات افتراضياً مع ميزة الفلترة والبحث)
+     * عرض دليل المحلات والخصومات للجمهور (صفحة الخصومات والمحلات)
      */
     public function index(Request $request)
     {
         $query = Shop::query();
 
-        //  الفلترة بالبحث النصي (اسم المحل، العنوان، أو التفاصيل
+        // البحث حسب الكلمة المفتاحية (اسم المحل أو العنوان)
         if ($request->filled('search')) {
-            $search = $request->input('search');
+            $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%")
-                  ->orWhere('details', 'like', "%{$search}%");
+                  ->orWhere('location', 'like', "%{$search}%");
             });
         }
 
-        // 🏷️ الفلترة بحسب التصنيف (إذا اختار المهندس تصنيفاً معيناً وكان غير "الكل")
-        if ($request->filled('category') && $request->category != 'الكل') {
+        // الفلترة حسب التصنيف
+        if ($request->filled('category')) {
             $query->where('category', $request->category);
         }
 
-        $shops = $query->latest()->get();
-
-        // قائمة التصنيفات المتاحة لعرضهاة
-        $categories = [
-            'الكل',
-            'مطاعم وكافيهات',
-            'مكتبات ومطابع ',
-            'مراكز طبية',
-            'محلات تجارية ',
-            'ملابس ومستلزمات ',
-            'خدمات أخرى ',
-            'مراكز رياضية',
-            'مساحات عمل وقاعات أفراح عنه'
-        ];
+        $shops = $query->latest()->paginate(12);
+        $categories = Shop::select('category')->distinct()->pluck('category');
 
         return view('shops.index', compact('shops', 'categories'));
     }
 
     /**
-     *  عرض لوحة تحكم المدير (Admin Dashboard)
+     * عرض لوحة التحكم للأدمن (Dashboard)
      */
-    public function adminDashboard()
+    public function adminDashboard(Request $request)
     {
-        $shops = Shop::latest()->get();
-        return view('admin.dashboard', compact('shops'));
+        $query = Shop::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%");
+        }
+
+        $shops = $query->latest()->paginate(10);
+        $totalShopsCount = Shop::count();
+
+        return view('admin.dashboard', compact('shops', 'totalShopsCount'));
     }
 
     /**
-     *  عرض نموذج إضافة محل جديد
+     * عرض صفحة إنشاء محل جديد
      */
     public function create()
     {
@@ -65,25 +63,25 @@ class ShopController extends Controller
     }
 
     /**
-     *  حفظ المحل الجديد في قاعدة البيانات (مع حقل التصنيف)
+     * حفظ محل جديد في قاعدة البيانات
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'discount' => 'required|numeric',
-            'address'  => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'details'  => 'nullable|string',
+            'discount' => 'required|string|max:255',
+            'phone'    => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
         ]);
 
-        Shop::create($request->all());
+        Shop::create($validated);
 
-        return redirect()->route('admin.dashboard')->with('success', 'تمت إضافة المحل بنجاح! ✨');
+        return redirect()->route('admin.dashboard')->with('success', 'تمت إضافة المحل بنجاح!');
     }
 
     /**
-     *  عرض نموذج تعديل بيانات محل معين
+     * عرض صفحة تعديل بيانات محل
      */
     public function edit(Shop $shop)
     {
@@ -91,77 +89,95 @@ class ShopController extends Controller
     }
 
     /**
-     *  حفظ التعديلات الجديدة للمحل
+     * تحديث بيانات المحل في قاعدة البيانات
      */
     public function update(Request $request, Shop $shop)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name'     => 'required|string|max:255',
-            'discount' => 'required|numeric',
-            'address'  => 'required|string|max:255',
             'category' => 'required|string|max:255',
-            'details'  => 'nullable|string',
+            'discount' => 'required|string|max:255',
+            'phone'    => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
         ]);
 
-        $shop->update($request->all());
+        $shop->update($validated);
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم تحديث بيانات المحل بنجاح! 📝');
+        return redirect()->route('admin.dashboard')->with('success', 'تم تعديل بيانات المحل بنجاح!');
     }
 
     /**
-     *  حذف محل فردي
+     * حذف محل فردي
      */
     public function destroy(Shop $shop)
     {
         $shop->delete();
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحل بنجاح! 🗑️');
+        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحل بنجاح!');
     }
 
     /**
-     *  حذف مجموعة محلات محددة دفعة واحدة 
+     * حذف مجموعة محلات محددة (حذف جماعي)
      */
     public function destroyMultiple(Request $request)
     {
-        $ids = $request->input('ids');
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'exists:shops,id',
+        ]);
 
-        if (!empty($ids)) {
-            Shop::whereIn('id', $ids)->delete();
-            return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحلات المحددة بنجاح! 🗑️');
-        }
+        Shop::whereIn('id', $request->ids)->delete();
 
-        return redirect()->route('admin.dashboard')->with('error', 'يرجى تحديد محل واحد على الأقل للحذف.');
+        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحلات المحدد بنجاح!');
     }
 
     /**
-     *  استيراد المحلات من ملف Excel / CSV
+     * استيراد المحلات من كافة أنواع ملفات الإكسل (xlsx, xls, csv)
      */
-    public function importCsv(Request $request)
+    public function importCSV(Request $request)
     {
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt',
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
 
-        $file = $request->file('csv_file');
-        $handle = fopen($file->getRealPath(), 'r');
-        
-        // تخطي السطر الأول (العناوين)
-        fgetcsv($handle);
+        try {
+            $file = $request->file('file');
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
 
-        while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
-            if (isset($data[0]) && isset($data[1]) && isset($data[2])) {
-                Shop::create([
-                    'name'     => $data[0],
-                    'discount' => $data[1],
-                    'address'  => $data[2],
-                    'category' => $data[3] ?? 'خدمات أخرى 🛠️',
-                    'details'  => $data[4] ?? null,
-                ]);
+            if (empty($rows)) {
+                return redirect()->back()->with('error', 'ملف الإكسل فارغ!');
             }
+
+            $importedCount = 0;
+
+            // قراءة الصفوف مع تخطي الصف الأول (عناوين الأعمدة)
+            foreach ($rows as $index => $row) {
+                if ($index === 0) continue;
+
+                $name     = $row[0] ?? null;
+                $category = $row[1] ?? 'عام';
+                $discount = $row[2] ?? 'خصم خاص';
+                $phone    = $row[3] ?? null;
+                $location = $row[4] ?? null;
+
+                if (!empty($name)) {
+                    Shop::create([
+                        'name'     => trim($name),
+                        'category' => trim($category),
+                        'discount' => trim($discount),
+                        'phone'    => trim($phone),
+                        'location' => trim($location),
+                    ]);
+                    $importedCount++;
+                }
+            }
+
+            return redirect()->back()->with('success', "تم استيراد {$importedCount} محلاً بنجاح من ملف الإكسل!");
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'حدث خطأ أثناء قراءة ملف الإكسل: ' . $e->getMessage());
         }
-
-        fclose($handle);
-
-        return redirect()->route('admin.dashboard')->with('success', 'تم استيراد المحلات من الملف بنجاح! 📊');
     }
 }
