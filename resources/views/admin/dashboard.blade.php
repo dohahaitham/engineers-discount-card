@@ -79,7 +79,7 @@
                     
                     <form action="{{ route('shops.importCsv') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-center gap-3">
                         @csrf
-                        <input type="file" name="csv_file" required accept=".csv" class="w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-2xl p-1 bg-slate-50">
+                        <input type="file" name="file" required accept=".csv,.xlsx,.xls" class="w-full text-xs text-slate-500 file:mr-0 file:ml-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-slate-200 rounded-2xl p-1 bg-slate-50">
                         <button type="submit" class="w-full sm:w-auto whitespace-nowrap bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-5 py-3 rounded-2xl transition shadow">
                             رفع الملف 📤
                         </button>
