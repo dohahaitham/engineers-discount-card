@@ -75,6 +75,7 @@ class ShopController extends Controller
             'phone'    => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'address'  => 'nullable|string|max:255',
+            'details'  => 'nullable|string',
         ]);
 
         // ضمان عدم وجود قيمة فارغة لـ address أو location
@@ -106,6 +107,7 @@ class ShopController extends Controller
             'phone'    => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'address'  => 'nullable|string|max:255',
+            'details'  => 'nullable|string',
         ]);
 
         $shop->update($validated);
@@ -140,7 +142,8 @@ class ShopController extends Controller
 
     /**
      * استيراد المحلات من كافة أنواع ملفات الإكسل (xlsx, xls, csv)
-     * الترتيب المقروء: A: اسم المحل | B: التصنيفات | C: نسبة الخصم | D: العنوان | E: تفاصيل الخصم
+     * الترتيب المقروء:
+     * A: اسم المحل | B: التصنيفات | C: نسبة الخصم | D: العنوان | E: تفاصيل الخصم
      */
     public function importCSV(Request $request)
     {
@@ -169,28 +172,22 @@ class ShopController extends Controller
                     continue;
                 }
 
-                // قراءة الأعمدة بحسب ترتيب ملفكِ
+                // قراءة كل عمود في حظه المخصص دون دمج نسبة الخصم والتفاصيل
                 $name     = $row[0] ?? null; // العمود A: اسم المحل
                 $category = $row[1] ?? 'عام'; // العمود B: التصنيفات
-                $discount = $row[2] ?? 'خصم خاص'; // العمود C: نسبة الخصم
+                $discount = $row[2] ?? 'خصم خاص'; // العمود C: نسبة الخصم فقط
                 $location = $row[3] ?? 'غير محدد'; // العمود D: العنوان
                 $details  = $row[4] ?? null; // العمود E: تفاصيل الخصم
-
-                // دمج نسبة الخصم مع تفاصيل الخصم إن وُجدت
-                $fullDiscount = trim($discount);
-                if (!empty($details) && trim($details) !== '') {
-                    $fullDiscount .= ' - ' . trim($details);
-                }
 
                 if (!empty($name)) {
                     Shop::create([
                         'name'     => trim($name),
                         'category' => trim($category),
-                        'discount' => $fullDiscount,
-                        'address'  => trim($location) ?: 'غير محدد', // حل مشكلة NOT NULL address
+                        'discount' => trim($discount), // نسبة الخصم فقط
+                        'address'  => trim($location) ?: 'غير محدد',
                         'location' => trim($location) ?: 'غير محدد',
                         'phone'    => null,
-                        'details'  => $details ? trim($details) : null,
+                        'details'  => $details ? trim($details) : null, // تفاصيل الخصم مستقلة
                     ]);
                     $importedCount++;
                 }
