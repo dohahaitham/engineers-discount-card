@@ -128,11 +128,12 @@ class ShopController extends Controller
 
         Shop::whereIn('id', $request->ids)->delete();
 
-        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحلات المحدد بنجاح!');
+        return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحلات المحددة بنجاح!');
     }
 
     /**
      * استيراد المحلات من كافة أنواع ملفات الإكسل (xlsx, xls, csv)
+     * الترتيب المقروء: A: اسم المحل | B: التصنيفات | C: نسبة الخصم | D: العنوان | E: تفاصيل الخصم
      */
     public function importCSV(Request $request)
     {
@@ -154,21 +155,33 @@ class ShopController extends Controller
 
             // قراءة الصفوف مع تخطي الصف الأول (عناوين الأعمدة)
             foreach ($rows as $index => $row) {
-                if ($index === 0) continue;
+                if ($index === 0) continue; // تخطي الهيدر
 
-                $name     = $row[0] ?? null;
-                $category = $row[1] ?? 'عام';
-                $discount = $row[2] ?? 'خصم خاص';
-                $phone    = $row[3] ?? null;
-                $location = $row[4] ?? null;
+                // تخطي الأسطر الفارغة تماماً
+                if (empty(array_filter($row, fn($val) => !is_null($val) && trim($val) !== ''))) {
+                    continue;
+                }
+
+                // قراءة الأعمدة بحسب ترتيب ملفكِ
+                $name     = $row[0] ?? null; // العمود A: اسم المحل
+                $category = $row[1] ?? 'عام'; // العمود B: التصنيفات
+                $discount = $row[2] ?? 'خصم خاص'; // العمود C: نسبة الخصم
+                $location = $row[3] ?? null; // العمود D: العنوان
+                $details  = $row[4] ?? null; // العمود E: تفاصيل الخصم
+
+                // دمج نسبة الخصم مع تفاصيل الخصم إن وُجدت
+                $fullDiscount = trim($discount);
+                if (!empty($details) && trim($details) !== '') {
+                    $fullDiscount .= ' - ' . trim($details);
+                }
 
                 if (!empty($name)) {
                     Shop::create([
                         'name'     => trim($name),
                         'category' => trim($category),
-                        'discount' => trim($discount),
-                        'phone'    => trim($phone),
-                        'location' => trim($location),
+                        'discount' => $fullDiscount,
+                        'location' => $location ? trim($location) : null,
+                        'phone'    => null,
                     ]);
                     $importedCount++;
                 }
