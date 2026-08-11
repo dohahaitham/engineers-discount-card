@@ -183,9 +183,9 @@ class ShopController extends Controller
                     Shop::create([
                         'name'     => trim($name),
                         'category' => trim($category),
-                        'discount' => trim($discount), // نسبة الخصم فقط
-                        'address'  => trim($location) ?: 'غير محدد',
-                        'location' => trim($location) ?: 'غير محدد',
+                        'discount' => mb_substr(trim($discount), 0, 191, 'UTF-8'), // نسبة الخصم فقط
+                        'address'  => mb_substr(trim($location) ?: 'غير محدد', 0, 191, 'UTF-8'),
+                        'location' => mb_substr(trim($location) ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'phone'    => null,
                         'details'  => $details ? trim($details) : null, // تفاصيل الخصم مستقلة
                     ]);

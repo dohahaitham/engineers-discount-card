@@ -17,10 +17,10 @@
         <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-50 shadow-sm">
             <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('logo.png') }}" alt="شعار النقابة" class="h-10 w-10 object-contain">
+                    <img src="{{ asset('logo.jpeg') }}" alt="شعار النقابة" class="h-10 w-10 object-contain">
                     <div>
                         <h1 class="text-base font-extrabold text-slate-900">لوحة تحكم الخصومات ⚙️</h1>
-                        <p class="text-xs text-indigo-600 font-bold">نقابة المهندسين - فلسطين 🇵🇸</p>
+                        <p class="text-xs text-indigo-600 font-bold">نقابة المهندسين - غزة 🇵🇸</p>
                     </div>
                 </div>
 
