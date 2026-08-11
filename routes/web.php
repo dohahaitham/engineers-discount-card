@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\AuthController;
+use App\Models\Shop;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,9 +11,12 @@ use App\Http\Controllers\AuthController;
 |--------------------------------------------------------------------------
 */
 
+
 // 1️⃣ الصفحة الرئيسية
 Route::get('/', function () {
-    return view('welcome');
+    $totalShopsCount = Shop::count();
+
+    return view('welcome', compact('totalShopsCount'));
 })->name('home');
 
 // 2️⃣ صفحة عرض المحلات والخصومات للجمهور
