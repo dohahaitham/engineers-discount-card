@@ -63,40 +63,61 @@
             <div id="hidden-inputs-container"></div>
 
             <!-- شريط العمليات -->
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-4">
                 
-                <!-- البحث -->
-                <div class="flex-1 max-w-md">
-                    <div class="relative">
-                        <input type="text" name="search_input" value="{{ request('search') }}" placeholder="البحث باسم المحل أو التصنيف..." 
-                               onkeydown="if(event.key === 'Enter'){ event.preventDefault(); window.location.href='{{ route('admin.dashboard') }}?search='+this.value; }"
-                               class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition">
-                        <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                <div class="space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+                    <!-- البحث -->
+                    <div class="flex-1 max-w-md">
+                        <div class="relative">
+                            <input type="text" name="search_input" value="{{ request('search') }}" placeholder="البحث باسم المحل أو التصنيف..." 
+                                   onkeydown="if(event.key === 'Enter'){ event.preventDefault(); window.location.href='{{ route('admin.dashboard') }}?search='+this.value; }"
+                                   class="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm transition">
+                            <span class="absolute left-3 top-2.5 text-gray-400">🔍</span>
+                        </div>
+                    </div>
+
+                    <!-- الأزرار التفاعلية -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        
+                        <!-- زر الحذف الجماعي -->
+                        <button type="submit" id="delete-selected-btn" disabled class="bg-rose-50 border border-rose-200 text-rose-600 opacity-50 cursor-not-allowed px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2">
+                            <span>🗑️</span>
+                            <span>حذف المحددة (<span id="selected-count">0</span>)</span>
+                        </button>
+
+                        <!-- رفع ملف إكسل -->
+                        <label class="cursor-pointer bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2">
+                            <span>📊</span>
+                            <span>استيراد إكسل</span>
+                            <input type="file" form="import-form" name="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="document.getElementById('import-form').submit()">
+                        </label>
+
+                        <!-- زر إضافة محل جديد -->
+                        <a href="{{ route('admin.shops.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition shadow-md hover:shadow-lg flex items-center gap-2">
+                            <span>➕</span>
+                            <span>إضافة محل جديد</span>
+                        </a>
                     </div>
                 </div>
 
-                <!-- الأزرار التفاعلية -->
-                <div class="flex flex-wrap items-center gap-3">
-                    
-                    <!-- زر الحذف الجماعي -->
-                    <button type="submit" id="delete-selected-btn" disabled class="bg-rose-50 border border-rose-200 text-rose-600 opacity-50 cursor-not-allowed px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2">
-                        <span>🗑️</span>
-                        <span>حذف المحددة (<span id="selected-count">0</span>)</span>
-                    </button>
-
-                    <!-- رفع ملف إكسل -->
-                    <label class="cursor-pointer bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl font-bold text-sm transition flex items-center gap-2">
-                        <span>📊</span>
-                        <span>استيراد إكسل</span>
-                        <input type="file" form="import-form" name="file" accept=".xlsx,.xls,.csv" class="hidden" onchange="document.getElementById('import-form').submit()">
-                    </label>
-
-                    <!-- زر إضافة محل جديد -->
-                    <a href="{{ route('admin.shops.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition shadow-md hover:shadow-lg flex items-center gap-2">
-                        <span>➕</span>
-                        <span>إضافة محل جديد</span>
-                    </a>
+                <!-- ملاحظة توضيحية لترتيب أعمدة الإكسل -->
+                <div class="pt-3 border-t border-gray-100">
+                    <div class="p-3.5 bg-blue-50/80 border-r-4 border-blue-400 rounded-xl text-sm text-blue-900">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-base">💡</span>
+                            <span class="font-bold">ملاحظة هامة عند استيراد ملف الإكسل:</span>
+                        </div>
+                        <p class="text-xs text-blue-700 mb-2 mr-6">يرجى التأكد من ترتيب الأعمدة بداخل ملف الإكسل كالتالي من اليسار إلى اليمين:</p>
+                        <ol class="list-decimal list-inside text-xs space-y-1 text-blue-800 font-bold mr-6">
+                            <li>اسم المحل</li>
+                            <li>التصنيفات</li>
+                            <li>نسبة الخصم</li>
+                            <li>العنوان</li>
+                            <li>تفاصيل الخصم</li>
+                        </ol>
+                    </div>
                 </div>
+
             </div>
 
             <!-- جدول المحلات -->
