@@ -1,127 +1,165 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دليل الخصومات والمحلات - نقابة المهندسين</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Cairo', sans-serif; }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col justify-between">
+    <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpeg') }}?v=3">
+<link rel="shortcut icon" href="{{ asset('logo.jpeg') }}?v=3">
+<link rel="apple-touch-icon" href="{{ asset('logo.jpeg') }}?v=3">
+        <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>دليل المحلات والخصومات - نقابة المهندسين</title>
+                    <!-- Tailwind CSS -->
+                        <script src="https://cdn.tailwindcss.com"></script>
+                            
+                                <!-- استدعاء خط Tajawal المميز ليتطابق مع الصفحة الأولى -->
+                                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                                        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                                            <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+                                                
+                                                    <style>
+                                                            body { font-family: 'Tajawal', sans-serif; }
+                                                                </style>
+                                                                </head>
+<body class="bg-slate-100/70 text-gray-800 min-h-screen flex flex-col justify-between">
 
-    <div>
-        <!-- الهيدر / شريط الملاحة -->
-        <header class="bg-white border-b border-gray-100 shadow-sm py-4">
-            <div class="container mx-auto px-4 flex justify-between items-center">
-                <h1 class="text-xl font-bold text-indigo-700">خصومات نقابة المهندسين</h1>
-                <a href="/" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition">الرئيسية</a>
-            </div>
-        </header>
+    <!-- الهيدر العلوي (متطابق تماماً مع الصفحة الرئيسية) -->
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            
+            <!-- لوجو النقابة واسم الفرع -->
+            <a href="{{ route('home') }}" class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl border border-gray-100 bg-white p-1.5 flex items-center justify-center shadow-xs">
+                    <!-- لوجو النقابة -->
+                    <img src="{{ asset('logo.jpeg') }}" alt="نقابة المهندسين" class="max-h-full max-w-full object-contain">
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-gray-900 leading-tight flex items-center gap-1.5">
+                        نقابة المهندسين - فرع غزة 🇵🇸
+                    </h1>
+                    <p class="text-xs text-indigo-600 font-semibold">مركز العمل الهندسي</p>
+                </div>
+            </a>
 
-        <!-- المحتوى الرئيسي -->
-        <main class="container mx-auto px-4 py-8">
-            <!-- عنوان الصفحة -->
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-bold text-gray-800 mb-2">دليل المحلات والخصومات</h2>
-                <p class="text-gray-600">استعرض كافة المحلات والشركات الموفرة لخصومات مهندسي نقابة المهندسين</p>
-            </div>
-
-            <!-- شريط البحث والفلترة -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm mb-8 border border-gray-100">
-                <form action="{{ route('shops.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
-                    <!-- حقل البحث -->
-                    <div class="flex-1">
-                        <input type="text" 
-                               name="search" 
-                               value="{{ request('search') }}" 
-                               placeholder="ابحث عن اسم المحل أو العنوان..." 
-                               class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700">
-                    </div>
-
-                    <!-- قائمة التصنيفات -->
-                    <div class="w-full md:w-64">
-                        <select name="category" 
-                                onchange="this.form.submit()" 
-                                class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700">
-                            <option value="">جميع التصنيفات</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category }}" {{ request('category') == $category ? 'selected' : '' }}>
-                                    {{ $category }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <!-- زر البحث -->
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl transition font-medium">
-                        بحث
-                    </button>
-                </form>
+            <!-- الأزرار على اليسار (زر كافة الخصومات ورابط الرئيسية) -->
+            <div class="flex items-center gap-3">
+                <a href="{{ route('shops.index') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition flex items-center gap-1.5">
+                    💳 كافة الخصومات ({{ $shops->total() ?? 45 }})
+                </a>
+                
+                <a href="{{ route('home') }}" class="text-xs font-bold text-gray-600 hover:text-indigo-600 transition hidden sm:flex items-center gap-1 bg-gray-50 hover:bg-gray-100 px-3 py-2.5 rounded-xl border border-gray-200/60">
+                    🏠 الرئيسية
+                </a>
             </div>
 
-            <!-- كروت عرض المحلات -->
-            @if($shops->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($shops as $shop)
-                        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition">
-                            <div>
-                                <!-- التصنيف ونسبة الخصم -->
-                                <div class="flex items-center justify-between mb-3">
-                                    <span class="bg-indigo-50 text-indigo-700 text-xs px-3 py-1 rounded-full font-medium">
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+
+        <!-- العنوان الرئيسي والبحث -->
+        <div class="mb-8 text-center max-w-3xl mx-auto">
+            <h2 class="text-2xl font-black text-gray-900 mb-2">استكشف جميع الخصومات والعروض</h2>
+            <p class="text-gray-600 text-xs sm:text-sm font-medium mb-6">ابحث واكتشف العروض الحصرية المتاحة لك في كافة المجالات والمحافظات</p>
+
+            <!-- نموذج البحث والفلترة -->
+            <form action="{{ route('shops.index') }}" method="GET" class="bg-white p-3.5 rounded-2xl shadow-sm border border-gray-200 flex flex-col sm:flex-row gap-2.5">
+                <div class="flex-1 relative">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="ابحث باسم المحل، الفرع، أو العنوان..." 
+                           class="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-gray-50 border border-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600 text-xs transition font-medium">
+                    <span class="absolute left-3 top-3 text-gray-400 text-xs">🔍</span>
+                </div>
+
+                <select name="category" class="py-2.5 px-3 rounded-xl bg-gray-50 border border-gray-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-600 text-xs font-medium transition">
+    <option value="">جميع التصنيفات</option>
+    
+    {{-- استخدام unique() لمنع تكرار أي تصنيف في القائمة --}}
+    @foreach (collect($categories)->unique() as $cat)
+        @if (!empty(trim($cat)))
+            <option value="{{ trim($cat) }}" {{ request('category') == trim($cat) ? 'selected' : '' }}>
+                {{ trim($cat) }}
+            </option>
+        @endif
+    @endforeach
+</select>
+
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-sm text-xs">
+                    بحث
+                </button>
+            </form>
+        </div>
+
+        <!-- شبكة الكروت الكرتونية الأنيقة والواضحة -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @forelse ($shops as $shop)
+                <div class="bg-white rounded-2xl p-4 border border-gray-200/80 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                    <div>
+                        <!-- اسم المحل ونسبة الخصم -->
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h3 class="font-bold text-gray-900 text-sm sm:text-base truncate">
+                                {{ $shop->name }}
+                            </h3>
+                            <span class="bg-rose-500 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-xs">
+                                {{ Str::contains($shop->discount, 'خصم') ? $shop->discount : 'خصم ' . $shop->discount }}
+                            </span>
+                        </div>
+
+                        <!-- التصنيف والعنوان -->
+                        <div class="space-y-1.5 mb-3 text-xs text-gray-600 font-medium">
+                            @if ($shop->category)
+                                <div class="flex items-center gap-1.5">
+                                    <span>🏷️</span>
+                                    <span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px]">
                                         {{ $shop->category }}
                                     </span>
-
-                                    <!-- شارة نسبة الخصم والتفاصيل -->
-                                    <div class="inline-flex items-center gap-1.5 bg-pink-50 text-pink-700 px-3 py-1 rounded-full text-xs font-bold" dir="auto">
-                                        <span dir="ltr">{{ $shop->discount }}</span>
-                                        @if(!empty($shop->details))
-                                            <span class="text-xs opacity-80 border-r border-pink-200 pr-1.5 mr-0.5">
-                                                {{ $shop->details }}
-                                            </span>
-                                        @endif
-                                    </div>
                                 </div>
-
-                                <!-- اسم المحل -->
-                                <h3 class="text-xl font-bold text-gray-800 mb-2">{{ $shop->name }}</h3>
-
-                                <!-- العنوان -->
-                                @if($shop->location || $shop->address)
-                                    <p class="text-gray-500 text-sm flex items-center gap-1 mb-2">
-                                        📍 <span>{{ $shop->location ?? $shop->address }}</span>
-                                    </p>
-                                @endif
-
-                                <!-- رقم الهاتف إن وجد -->
-                                @if($shop->phone)
-                                    <p class="text-gray-500 text-sm flex items-center gap-1">
-                                        📞 <span dir="ltr">{{ $shop->phone }}</span>
-                                    </p>
-                                @endif
+                            @endif
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-rose-600">📍</span>
+                                <span class="truncate text-gray-700">{{ $shop->location ?? $shop->address ?? 'غير محدد' }}</span>
                             </div>
                         </div>
-                    @endforeach
-                </div>
 
-                <!-- الترقيم والتنقل بين الصفحات -->
-                <div class="mt-8">
-                    {{ $shops->withQueryString()->links() }}
-                </div>
-            @else
-                <div class="text-center py-12 bg-white rounded-2xl border border-gray-100">
-                    <p class="text-gray-500 text-lg">لا توجد محلات تطابق خيارات البحث حالياً.</p>
-                </div>
-            @endif
-        </main>
-    </div>
+                        <!-- تفاصيل الخصم والعرض -->
+                        @if ($shop->details)
+                            <div class="bg-amber-50 border border-amber-200/90 rounded-xl p-2.5 mt-2">
+                                <div class="text-[11px] font-bold text-amber-900 mb-0.5 flex items-center gap-1">
+                                    <span>📝</span>
+                                    <span>تفاصيل الخصم:</span>
+                                </div>
+                                <p class="text-xs text-amber-950 font-medium leading-relaxed line-clamp-2">
+                                    {{ $shop->details }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
 
-    <!-- الفوتر -->
-    <footer class="bg-white border-t border-gray-100 py-4 text-center text-sm text-gray-500 mt-12">
-        جميع الحقوق محفوظة © نقابة المهندسين - فلسطين
+                    <!-- رقم التواصل -->
+                    @if ($shop->phone)
+                        <div class="pt-2.5 mt-3 border-t border-gray-100 text-xs text-gray-600 flex items-center justify-between font-medium">
+                            <span>📞 التواصل:</span>
+                            <a href="tel:{{ $shop->phone }}" class="font-bold text-indigo-700 hover:underline dir-ltr">
+                                {{ $shop->phone }}
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="col-span-full py-16 text-center text-gray-500 text-sm font-bold">
+                    لا توجد محلات مطابقة للبحث حالياً.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- التنقل بين الصفحات -->
+        @if($shops->hasPages())
+            <div class="mt-8">
+                {{ $shops->links() }}
+            </div>
+        @endif
+
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 font-medium mt-10">
+        جميع الحقوق محفوظة &copy; {{ date('Y') }} نقابة المهندسين - فرع غزة
     </footer>
 
 </body>

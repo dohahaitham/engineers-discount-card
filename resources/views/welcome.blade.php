@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpeg') }}?v=3">
+<link rel="shortcut icon" href="{{ asset('logo.jpeg') }}?v=3">
+<link rel="apple-touch-icon" href="{{ asset('logo.jpeg') }}?v=3">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نقابة المهندسين - فلسطين 👷‍♂️</title>

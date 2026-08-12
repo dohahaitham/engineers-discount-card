@@ -31,7 +31,14 @@ class ShopController extends Controller
         }
 
         $shops = $query->latest()->paginate(12);
-        $categories = Shop::select('category')->distinct()->pluck('category');
+
+        // جلب التصنيفات بدون تكرار وبدون مسافات مخفية زائدة
+        $categories = Shop::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->pluck('category')
+            ->map(fn($cat) => trim($cat))
+            ->unique()
+            ->values();
 
         return view('shops.index', compact('shops', 'categories'));
     }
@@ -60,7 +67,7 @@ class ShopController extends Controller
      */
     public function create()
     {
-        return view('admin.shops.create');
+        return view('admin.create');
     }
 
     /**
@@ -92,7 +99,7 @@ class ShopController extends Controller
      */
     public function edit(Shop $shop)
     {
-        return view('admin.shops.edit', compact('shop'));
+        return view('admin.edit', compact('shop'));
     }
 
     /**
@@ -153,7 +160,13 @@ class ShopController extends Controller
 
         try {
             $file = $request->file('file');
-            $spreadsheet = IOFactory::load($file->getRealPath());
+            $filePath = $file->getRealPath();
+
+            // تجنب أخطاء XML Parser بالاعتماد على قراءة البيانات فقط
+            $reader = IOFactory::createReaderForFile($filePath);
+            $reader->setReadDataOnly(true); 
+            $spreadsheet = $reader->load($filePath);
+
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
 
@@ -163,31 +176,45 @@ class ShopController extends Controller
 
             $importedCount = 0;
 
-            // قراءة الصفوف مع تخطي الصف الأول (عناوين الأعمدة)
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue; // تخطي الهيدر
 
-                // تخطي الأسطر الفارغة تماماً
-                if (empty(array_filter($row, fn($val) => !is_null($val) && trim($val) !== ''))) {
+                // تخطي الصفوف الفارغة تماماً
+                if (empty(array_filter($row, fn($val) => !is_null($val) && trim((string)$val) !== ''))) {
                     continue;
                 }
 
-                // قراءة كل عمود في حظه المخصص دون دمج نسبة الخصم والتفاصيل
-                $name     = $row[0] ?? null; // العمود A: اسم المحل
-                $category = $row[1] ?? 'عام'; // العمود B: التصنيفات
-                $discount = $row[2] ?? 'خصم خاص'; // العمود C: نسبة الخصم فقط
-                $location = $row[3] ?? 'غير محدد'; // العمود D: العنوان
-                $details  = $row[4] ?? null; // العمود E: تفاصيل الخصم
+                $name     = isset($row[0]) ? trim((string)$row[0]) : null;
+                $category = isset($row[1]) ? trim((string)$row[1]) : 'عام';
+                
+                // قراءة الخصم ومعالجة النسبة المئوية
+                $rawDiscount = isset($row[2]) ? trim((string)$row[2]) : 'خصم خاص';
+                
+                if (is_numeric($rawDiscount)) {
+                    $val = (float)$rawDiscount;
+                    if ($val > 0 && $val <= 1) {
+                        // تحويل الكسر العشري (مثل 0.25) إلى نسبة مئوية (25%)
+                        $discount = round($val * 100) . '%';
+                    } else {
+                        // إضافة علامة % للأرقام الصحيحة
+                        $discount = $val . '%';
+                    }
+                } else {
+                    $discount = $rawDiscount;
+                }
+
+                $location = isset($row[3]) ? trim((string)$row[3]) : 'غير محدد';
+                $details  = isset($row[4]) ? trim((string)$row[4]) : null;
 
                 if (!empty($name)) {
                     Shop::create([
-                        'name'     => trim($name),
-                        'category' => trim($category),
-                        'discount' => mb_substr(trim($discount), 0, 191, 'UTF-8'), // نسبة الخصم فقط
-                        'address'  => mb_substr(trim($location) ?: 'غير محدد', 0, 191, 'UTF-8'),
-                        'location' => mb_substr(trim($location) ?: 'غير محدد', 0, 191, 'UTF-8'),
+                        'name'     => $name,
+                        'category' => $category ?: 'عام',
+                        'discount' => mb_substr($discount, 0, 191, 'UTF-8'),
+                        'address'  => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
+                        'location' => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'phone'    => null,
-                        'details'  => $details ? trim($details) : null, // تفاصيل الخصم مستقلة
+                        'details'  => $details ?: null,
                     ]);
                     $importedCount++;
                 }
