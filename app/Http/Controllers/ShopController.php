@@ -149,7 +149,7 @@ class ShopController extends Controller
 
     /**
      * استيراد المحلات من كافة أنواع ملفات الإكسل (xlsx, xls, csv)
-     * الترتيب المقروء:
+     * الترتيب المقروء الذكي:
      * A: اسم المحل | B: التصنيفات | C: نسبة الخصم | D: العنوان | E: تفاصيل الخصم
      */
     public function importCSV(Request $request)
@@ -162,7 +162,6 @@ class ShopController extends Controller
             $file = $request->file('file');
             $filePath = $file->getRealPath();
 
-            // تجنب أخطاء XML Parser بالاعتماد على قراءة البيانات فقط
             $reader = IOFactory::createReaderForFile($filePath);
             $reader->setReadDataOnly(true); 
             $spreadsheet = $reader->load($filePath);
@@ -187,30 +186,38 @@ class ShopController extends Controller
                 $name     = isset($row[0]) ? trim((string)$row[0]) : null;
                 $category = isset($row[1]) ? trim((string)$row[1]) : 'عام';
                 
-                // قراءة الخصم ومعالجة النسبة المئوية
-                $rawDiscount = isset($row[2]) ? trim((string)$row[2]) : 'خصم خاص';
-                
-                if (is_numeric($rawDiscount)) {
-                    $val = (float)$rawDiscount;
-                    if ($val > 0 && $val <= 1) {
-                        // تحويل الكسر العشري (مثل 0.25) إلى نسبة مئوية (25%)
-                        $discount = round($val * 100) . '%';
-                    } else {
-                        // إضافة علامة % للأرقام الصحيحة
-                        $discount = $val . '%';
-                    }
-                } else {
-                    $discount = $rawDiscount;
-                }
+                $colC = isset($row[2]) ? trim((string)$row[2]) : '';
+                $colD = isset($row[3]) ? trim((string)$row[3]) : '';
+                $colE = isset($row[4]) ? trim((string)$row[4]) : '';
 
-                $location = isset($row[3]) ? trim((string)$row[3]) : 'غير محدد';
-                $details  = isset($row[4]) ? trim((string)$row[4]) : null;
+                // معالجة ونسبة الخصم الذكية
+                $discount = 'خصم خاص';
+                $location = 'غير محدد';
+                $details  = null;
+
+                // فحص إذا كان العمود C يحتوي على نسبة أو رقم
+                if (is_numeric($colC)) {
+                    $val = (float)$colC;
+                    $discount = ($val > 0 && $val <= 1) ? round($val * 100) . '%' : $val . '%';
+                    $location = $colD;
+                    $details  = $colE;
+                } elseif (preg_match('/^\d+(\s*-\s*\d+)?\s*%?$/', $colC) || strlen($colC) <= 15) {
+                    // إذا كانت قيمة الخصم قصيرة مثل "10%" أو "10 - 20%"
+                    $discount = $colC ?: 'خصم خاص';
+                    $location = $colD;
+                    $details  = $colE;
+                } else {
+                    // في حال كانت الأعمدة مبدلة أو الخصم نص طويلاً
+                    $discount = 'خصم خاص';
+                    $location = $colC;
+                    $details  = trim($colD . ' ' . $colE);
+                }
 
                 if (!empty($name)) {
                     Shop::create([
                         'name'     => $name,
                         'category' => $category ?: 'عام',
-                        'discount' => mb_substr($discount, 0, 191, 'UTF-8'),
+                        'discount' => mb_substr($discount, 0, 45, 'UTF-8'), // قص حقل الخصم لحجم آمن جداً لقواعد البيانات
                         'address'  => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'location' => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'phone'    => null,
