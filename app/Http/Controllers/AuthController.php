@@ -51,32 +51,26 @@ class AuthController extends Controller
                                                                                                                 }
 
     // 2️⃣ التحقق المشفّر وتسجيل الدخول الآمن
-    public function login(Request $request)
-    {
-        $request->validate([
-                'username' => 'required',
-                        'password' => 'required',
-                            ]);
+public function login(Request $request)
+{
+    $credentials = $request->validate([
+        'username' => 'required',
+        'password' => 'required',
+    ], [
+        'username.required' => 'يرجى إدخال اسم المستخدم.',
+        'password.required' => 'يرجى إدخال كلمة المرور.',
+    ]);
 
-                                $user = \App\Models\User::where('username', $request->username)
-                                                ->orWhere('email', $request->username)
-                                                                ->first();
+    // محاولة تسجيل الدخول باسم المستخدم أو الإيميل
+    $fieldType = filter_var($request->username, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-                                                                    // إذا لم يجد المستخدم إطلاقاً
-                                                                        if (!$user) {
-                                                                                return back()->withErrors(['login_error' => 'اسم المستخدم غير موجود في قاعدة البيانات!']);
-                                                                                    }
+    if (Auth::attempt([$fieldType => $request->username, 'password' => $request->password])) {
+        $request->session()->regenerate();
+        return redirect()->route('admin.dashboard')->with('success', 'أهلاً بك!');
+    }
 
-                                                                                        // إذا كانت كلمة المرور غير متطابقة
-                                                                                            if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
-                                                                                                    return back()->withErrors(['login_error' => 'كلمة المرور غير صحيحة كلمة المرور المسجلة هاش مختلف!']);
-                                                                                                        }
-
-                                                                                                            Auth::login($user);
-                                                                                                                $request->session()->regenerate();
-
-                                                                                                                    return redirect()->route('admin.dashboard')->with('success', 'أهلاً بك!');
-                                                                                                                    }
+    return back()->withErrors(['login_error' => 'اسم المستخدم أو كلمة المرور غير صحيحة!']);
+}
 
     // 3️⃣ تسجيل الخروج الآمن
     public function logout(Request $request)
