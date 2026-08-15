@@ -21,6 +21,7 @@ Route::get('/', function () {
 
 // 2️⃣ صفحة عرض جميع المحلات والخصومات للجمهور
 Route::get('/discounts', [ShopController::class, 'index'])->name('shops.index');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');
 
 // 3️⃣ مسارات تسجيل الدخول والخروج الخاصة بالإدارة
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

@@ -2,11 +2,18 @@
 <html lang="ar" dir="rtl">
 <head>
     <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpeg') }}?v=3">
-<link rel="shortcut icon" href="{{ asset('logo.jpeg') }}?v=3">
-<link rel="apple-touch-icon" href="{{ asset('logo.jpeg') }}?v=3">
+    <link rel="shortcut icon" href="{{ asset('logo.jpeg') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ asset('logo.jpeg') }}?v=3">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نقابة المهندسين - فلسطين 👷‍♂️</title>
+    <title>نقابة المهندسين - فرع غزة 👷‍♂️</title>
+    
+    <!-- Open Graph Tags للمشاركة عبر الواتساب والمواقع -->
+    <meta property="og:title" content="نقابة المهندسين - فرع غزة 👷‍♂️" />
+    <meta property="og:description" content="دليل الخصومات والمزايا المخصصة لمهندسي نقابة المهندسين - فرع غزة." />
+    <meta property="og:image" content="{{ asset('logo.jpeg') }}" />
+
+    <!-- مكتبة Tailwind عبر CDN لمنع أخطاء Vite نهائياً -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
     <style> body { font-family: 'Tajawal', sans-serif; } </style>
@@ -17,9 +24,18 @@
     <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm py-4 px-6 relative z-20 sticky top-0">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <img src="{{ asset('logo.jpeg') }}" alt="شعار نقابة المهندسين" class="h-14 w-14 md:h-16 md:w-16 object-contain bg-slate-50 rounded-2xl p-1.5 border border-slate-200 shadow-sm">
+                <img src="{{ asset('logo.jpeg') }}" alt="شعار نقابة المهندسين" class="h-14 w-14 md:h-16 md:w-16 object-contain bg-slate-50 rounded-2xl p-1.5 border border-slate-200 shadow-sm" onError="this.style.display='none'">
                 <div>
-                    <h1 class="text-lg md:text-xl font-black text-slate-900 leading-tight">نقابة المهندسين - فرع غزة 🇵🇸</h1>
+                    <h1 class="text-lg md:text-xl font-black text-slate-900 leading-tight flex items-center gap-2">
+                        <span>نقابة المهندسين - فرع غزة</span>
+                        <!-- علم فلسطين بصيغة SVG ليظهر بوضوح على اللابتوب والجوال -->
+                        <svg class="w-5 h-4 rounded-xs shadow-2xs inline-block" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="600" height="100" fill="#000000"/>
+                            <rect y="100" width="600" height="100" fill="#FFFFFF"/>
+                            <rect y="200" width="600" height="100" fill="#007A3D"/>
+                            <polygon points="0,0 200,150 0,300" fill="#CE1126"/>
+                        </svg>
+                    </h1>
                     <p class="text-indigo-600 font-bold text-xs md:text-sm mt-0.5">مركز العمل الهندسي </p>
                 </div>
             </div>
@@ -51,7 +67,7 @@
 
         </div>
 
-        <!-- 3️⃣ شريط أبرز 3 محلات + زر الاستعراض الكامل -->
+        <!-- 3️⃣ شريط أبرز المحلات + زر الاستعراض الكامل -->
         @if($shops->count() > 0)
         <div class="relative z-10 max-w-6xl w-full mx-auto px-4">
             <div class="bg-white/95 backdrop-blur-md rounded-3xl p-6 shadow-2xl border border-white/20">
@@ -65,20 +81,30 @@
                     </a>
                 </div>
 
-                <!-- كروت أحدث 3 محلات -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    @foreach($shops as $shop)
-                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex flex-col justify-between hover:border-indigo-300 transition shadow-sm">
-                            <div class="flex items-start justify-between gap-2 mb-2">
-                                <h4 class="font-bold text-slate-900 text-sm truncate">{{ $shop->name }}</h4>
-                                <span class="bg-rose-100 text-rose-700 font-extrabold text-[11px] px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                                    خصم {{ $shop->discount }}%
-                                </span>
-                            </div>
-                            <p class="text-xs text-slate-500 truncate">📍 {{ $shop->address }}</p>
-                        </div>
-                    @endforeach
-                </div>
+                <!-- كروت أحدث المحلات -->
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     @foreach($shops as $shop)
+                             @php
+                                         // تنظيف نص الخصم لمنع تكرار علامة المئة
+                                                     $discountCleaned = str_replace('%', '', $shop->discount);
+                                                             @endphp
+                                                                     <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex flex-col justify-between hover:border-indigo-300 transition shadow-sm hover:shadow-md">
+                                                                                 <div>
+                                                                                                 <div class="flex items-start justify-between gap-2 mb-2">
+                                                                                                                     <!-- تم إزالة truncate وعرض الاسم كاملاً -->
+                                                                                                                                         <h4 class="font-bold text-slate-900 text-sm leading-snug">{{ $shop->name }}</h4>
+                                                                                                                                                             
+                                                                                                                                                                                 <!-- شارة الخصم -->
+                                                                                                                                                                                                     <span class="bg-gradient-to-r from-rose-600 to-red-600 text-white font-black text-xs px-2.5 py-1 rounded-xl shadow-sm border border-red-500 whitespace-nowrap flex items-center gap-1 shrink-0">
+                                                                                                                                                                                                                             🏷️ خصم {{ $discountCleaned }}%
+                                                                                                                                                                                                                                                 </span>
+                                                                                                                                                                                                                                                                 </div>
+                                                                                                                                                                                                                                                                                 <!-- تم إزالة truncate وعرض العنوان كاملاً -->
+                                                                                                                                                                                                                                                                                                 <p class="text-xs text-slate-600 leading-relaxed mt-1">📍 {{ $shop->address }}</p>
+                                                                                                                                                                                                                                                                                                             </div>
+                                                                                                                                                                                                                                                                                                                     </div>
+                                                                                                                                                                                                                                                                                                                         @endforeach
+                                                                                                                                                                                                                                                                                                                         </div>
 
                 <!-- زر الاستكشاف المباشر بالأسفل -->
                 <div class="mt-5 text-center pt-2">
@@ -93,8 +119,14 @@
     </main>
 
     <!-- الفوتر السفلي -->
-    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 font-bold">
-        جميع الحقوق محفوظة © نقابة المهندسين - فلسطين 🇵🇸
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 font-bold flex items-center justify-center gap-1">
+        <span>جميع الحقوق محفوظة © نقابة المهندسين - فرع غزة</span>
+        <svg class="w-4 h-3 rounded-xs inline-block" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+            <rect width="600" height="100" fill="#000000"/>
+            <rect y="100" width="600" height="100" fill="#FFFFFF"/>
+            <rect y="200" width="600" height="100" fill="#007A3D"/>
+            <polygon points="0,0 200,150 0,300" fill="#CE1126"/>
+        </svg>
     </footer>
 
 </body>

@@ -3,42 +3,57 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // 👈 مهم جداً لمنع خطأ Class Auth not found
 
 class AuthController extends Controller
 {
     // 1️⃣ عرض صفحة تسجيل الدخول
     public function showLogin()
     {
-        if (session('is_admin')) {
-            return redirect()->route('admin.dashboard');
-        }
-        return view('admin.login');
-    }
+        // التحقق بالنظام المعياري لتفادي حلقة التوجيه
+            if (\Illuminate\Support\Facades\Auth::check()) {
+                    return redirect()->route('admin.dashboard');
+                        }
+                            
+                                return view('admin.login');
+                                }
 
-    // 2️⃣ التحقق من كلمة السر
+    // 2️⃣ التحقق المشفّر وتسجيل الدخول الآمن
     public function login(Request $request)
     {
         $request->validate([
-            'username' => 'required',
-            'password' => 'required',
-        ]);
+                'username' => 'required',
+                        'password' => 'required',
+                            ]);
 
-        // نحدد اسم المستخدم وكلمة السر هنا (يمكنكِ تغييرها لما تحبين)
-        $adminUsername = 'admin';
-        $adminPassword = 'password123';
+                                $user = \App\Models\User::where('username', $request->username)
+                                                ->orWhere('email', $request->username)
+                                                                ->first();
 
-        if ($request->username === $adminUsername && $request->password === $adminPassword) {
-            session(['is_admin' => true]);
-            return redirect()->route('admin.dashboard')->with('success', 'أهلاً بك في لوحة التحكم! 👋');
-        }
+                                                                    // إذا لم يجد المستخدم إطلاقاً
+                                                                        if (!$user) {
+                                                                                return back()->withErrors(['login_error' => 'اسم المستخدم غير موجود في قاعدة البيانات!']);
+                                                                                    }
 
-        return back()->withErrors(['login_error' => 'اسم المستخدم أو كلمة المرور غير صحيحة!']);
-    }
+                                                                                        // إذا كانت كلمة المرور غير متطابقة
+                                                                                            if (!\Illuminate\Support\Facades\Hash::check($request->password, $user->password)) {
+                                                                                                    return back()->withErrors(['login_error' => 'كلمة المرور غير صحيحة كلمة المرور المسجلة هاش مختلف!']);
+                                                                                                        }
 
-    // 3️⃣ تسجيل الخروج
-    public function logout()
+                                                                                                            Auth::login($user);
+                                                                                                                $request->session()->regenerate();
+
+                                                                                                                    return redirect()->route('admin.dashboard')->with('success', 'أهلاً بك!');
+                                                                                                                    }
+
+    // 3️⃣ تسجيل الخروج الآمن
+    public function logout(Request $request)
     {
-        session()->forget('is_admin');
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('shops.index')->with('success', 'تم تسجيل الخروج بنجاح.');
     }
 }
