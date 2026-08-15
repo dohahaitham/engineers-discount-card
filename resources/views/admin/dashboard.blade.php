@@ -17,30 +17,37 @@
 <body class="bg-gray-50 text-gray-800 min-h-screen">
 
     <!-- الهيدر العلوي -->
-     <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                 <div class="flex items-center gap-3">
-                             <span class="text-2xl">🏬</span>
-                                         <h1 class="text-xl font-bold text-gray-900">لوحة إدارة المحلات والمؤسسات</h1>
-                                                 </div>
-                                                         <div class="flex items-center gap-3">
-                                                                     <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold">
-                                                                                     إجمالي المحلات: {{ $totalShopsCount }}
-                                                                                                 </span>
-                                                                                                             <a href="{{ route('shops.index') }}" target="_blank" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition flex items-center gap-1 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
-                                                                                                                             🌐 عرض الموقع
-                                                                                                                                         </a>
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🏬</span>
+                <h1 class="text-xl font-bold text-gray-900">لوحة إدارة المحلات والمؤسسات</h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <span class="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-semibold">
+                    إجمالي المحلات: {{ $totalShopsCount }}
+                </span>
+                
+                <a href="{{ route('shops.index') }}" target="_blank" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition flex items-center gap-1 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-xl border border-gray-200">
+                    🌐 عرض الموقع
+                </a>
 
-                                                                                                                                                     <!-- زر تسجيل الخروج -->
-                                                                                                                                                                 <form action="{{ route('logout') }}" method="POST" class="inline">
-                                                                                                                                                                                 @csrf
-                                                                                                                                                                                                 <button type="submit" class="text-sm font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 transition flex items-center gap-1 cursor-pointer">
-                                                                                                                                                                                                                     🚪 تسجيل الخروج
-                                                                                                                                                                                                                                     </button>
-                                                                                                                                                                                                                                                 </form>
-                                                                                                                                                                                                                                                         </div>
-                                                                                                                                                                                                                                                             </div>
-                                                                                                                                                                                                                                                             </header>
+                <!-- زر تغيير كلمة المرور المضاف -->
+                <a href="{{ route('admin.change-password') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 transition flex items-center gap-1">
+                    🔑 تغيير كلمة المرور
+                </a>
+
+                <!-- زر تسجيل الخروج -->
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="text-sm font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-200 transition flex items-center gap-1 cursor-pointer">
+                        🚪 تسجيل الخروج
+                    </button>
+                </form>
+            </div>
+        </div>
+    </header>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
