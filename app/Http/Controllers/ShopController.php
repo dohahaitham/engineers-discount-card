@@ -9,38 +9,49 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class ShopController extends Controller
 {
     /**
-     * عرض دليل المحلات والخصومات للجمهور (صفحة الخصومات والمحلات)
+     * عرض دليل المحلات والخصومات مع آلية طباعة الأخطاء الصريحة
      */
     public function index(Request $request)
     {
-        $query = Shop::query();
+        try {
+            $query = Shop::query();
 
-        // البحث حسب الكلمة المفتاحية (اسم المحل أو العنوان)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%");
-            });
+            // 1. البحث
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+                
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                      ->orWhere('address', 'LIKE', '%' . $search . '%')
+                      ->orWhere('address', 'LIKE', '%' . $search . '%');
+                });
+            }
+
+            // 2. الفلترة حسب التصنيف
+            if ($request->filled('category')) {
+                $query->where('category', trim($request->category));
+            }
+
+            // 3. الترقيم والتنقل
+            $shops = $query->latest()->paginate(12)->appends($request->all());
+
+            // 4. جلب التصنيفات
+            $categories = Shop::whereNotNull('category')
+                ->where('category', '!=', '')
+                ->pluck('category')
+                ->unique();
+
+            return view('shops.index', compact('shops', 'categories'));
+
+        } catch (\Throwable $e) {
+            // طباعة سبب الخطأ الحقيقي مباشرة في المتصفح
+            dd([
+                'ErrorMessage' => $e->getMessage(),
+                'File'         => $e->getFile(),
+                'Line'         => $e->getLine(),
+                'Code'         => $e->getCode(),
+            ]);
         }
-
-        // الفلترة حسب التصنيف
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-
-        $shops = $query->latest()->paginate(12);
-
-        // جلب التصنيفات بدون تكرار وبدون مسافات مخفية زائدة
-        $categories = Shop::whereNotNull('category')
-            ->where('category', '!=', '')
-            ->pluck('category')
-            ->map(fn($cat) => trim($cat))
-            ->unique()
-            ->values();
-
-        return view('shops.index', compact('shops', 'categories'));
     }
 
     /**
@@ -51,12 +62,12 @@ class ShopController extends Controller
         $query = Shop::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('name', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+            $search = trim($request->search);
+            $query->where('name', 'LIKE', '%' . $search . '%')
+                  ->orWhere('category', 'LIKE', '%' . $search . '%');
         }
 
-        $shops = $query->latest()->paginate(10);
+        $shops = $query->latest()->paginate(10)->appends($request->all());
         $totalShopsCount = Shop::count();
 
         return view('admin.dashboard', compact('shops', 'totalShopsCount'));
@@ -85,7 +96,6 @@ class ShopController extends Controller
             'details'  => 'nullable|string',
         ]);
 
-        // ضمان عدم وجود قيمة فارغة لـ address أو location
         $validated['address']  = $validated['address'] ?? $validated['location'] ?? 'غير محدد';
         $validated['location'] = $validated['location'] ?? $validated['address'] ?? 'غير محدد';
 
@@ -103,7 +113,7 @@ class ShopController extends Controller
     }
 
     /**
-     * تحديث بيانات المحل في قاعدة البيانات
+     * تحديث بيانات المحل
      */
     public function update(Request $request, Shop $shop)
     {
@@ -133,7 +143,7 @@ class ShopController extends Controller
     }
 
     /**
-     * حذف مجموعة محلات محددة (حذف جماعي)
+     * حذف مجموعة محلات محددة
      */
     public function destroyMultiple(Request $request)
     {
@@ -148,9 +158,7 @@ class ShopController extends Controller
     }
 
     /**
-     * استيراد المحلات من كافة أنواع ملفات الإكسل (xlsx, xls, csv)
-     * الترتيب المقروء الذكي:
-     * A: اسم المحل | B: التصنيفات | C: نسبة الخصم | D: العنوان | E: تفاصيل الخصم
+     * استيراد المحلات من ملف إكسل
      */
     public function importCSV(Request $request)
     {
@@ -176,9 +184,8 @@ class ShopController extends Controller
             $importedCount = 0;
 
             foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // تخطي الهيدر
+                if ($index === 0) continue;
 
-                // تخطي الصفوف الفارغة تماماً
                 if (empty(array_filter($row, fn($val) => !is_null($val) && trim((string)$val) !== ''))) {
                     continue;
                 }
@@ -190,24 +197,20 @@ class ShopController extends Controller
                 $colD = isset($row[3]) ? trim((string)$row[3]) : '';
                 $colE = isset($row[4]) ? trim((string)$row[4]) : '';
 
-                // معالجة ونسبة الخصم الذكية
                 $discount = 'خصم خاص';
                 $location = 'غير محدد';
                 $details  = null;
 
-                // فحص إذا كان العمود C يحتوي على نسبة أو رقم
                 if (is_numeric($colC)) {
                     $val = (float)$colC;
                     $discount = ($val > 0 && $val <= 1) ? round($val * 100) . '%' : $val . '%';
                     $location = $colD;
                     $details  = $colE;
                 } elseif (preg_match('/^\d+(\s*-\s*\d+)?\s*%?$/', $colC) || strlen($colC) <= 15) {
-                    // إذا كانت قيمة الخصم قصيرة مثل "10%" أو "10 - 20%"
                     $discount = $colC ?: 'خصم خاص';
                     $location = $colD;
                     $details  = $colE;
                 } else {
-                    // في حال كانت الأعمدة مبدلة أو الخصم نص طويلاً
                     $discount = 'خصم خاص';
                     $location = $colC;
                     $details  = trim($colD . ' ' . $colE);
@@ -217,7 +220,7 @@ class ShopController extends Controller
                     Shop::create([
                         'name'     => $name,
                         'category' => $category ?: 'عام',
-                        'discount' => mb_substr($discount, 0, 45, 'UTF-8'), // قص حقل الخصم لحجم آمن جداً لقواعد البيانات
+                        'discount' => mb_substr($discount, 0, 45, 'UTF-8'),
                         'address'  => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'location' => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'phone'    => null,

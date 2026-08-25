@@ -103,7 +103,7 @@
                                 {{ $shop->name }}
                             </h3>
                             <span class="bg-rose-500 text-white text-[11px] font-black px-2.5 py-0.5 rounded-full whitespace-nowrap shadow-xs">
-                                {{ Str::contains($shop->discount, 'خصم') ? $shop->discount : 'خصم ' . $shop->discount }}
+                                {{ Str::contains((string) $shop->discount, 'خصم') ? $shop->discount : 'خصم ' . ($shop->discount ?? 'خاص') }}
                             </span>
                         </div>
 
