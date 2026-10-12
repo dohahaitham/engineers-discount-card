@@ -22,6 +22,12 @@ Route::get('/', function () {
 // 2️⃣ صفحة عرض جميع المحلات والخصومات للجمهور
 Route::get('/discounts', [ShopController::class, 'index'])->name('shops.index');
 
+// 💡 تم تقديم مسار التصدير هنا ليكون قبل مسار التفاصيل {shop} لمنع تعارضه مع الـ 404
+Route::get('/shops/export-excel', [ShopController::class, 'exportExcel'])->name('shops.exportExcel');
+
+// صفحة تفاصيل محل محدد (يجب أن تكون بعد المسارات الثابتة)
+Route::get('/shops/{shop}', [ShopController::class, 'show'])->name('shops.show');
+
 // 3️⃣ مسارات تسجيل الدخول والخروج الخاصة بالإدارة
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1')->name('login.submit');

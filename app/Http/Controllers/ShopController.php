@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Shop;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Exports\ShopsExport;
+use Maatwebsite\Excel\Facades\Excel;
+
+
 
 class ShopController extends Controller
 {
@@ -23,7 +27,7 @@ class ShopController extends Controller
                 $query->where(function($q) use ($search) {
                     $q->where('name', 'LIKE', '%' . $search . '%')
                       ->orWhere('address', 'LIKE', '%' . $search . '%')
-                      ->orWhere('address', 'LIKE', '%' . $search . '%');
+                      ->orWhere('branches', 'LIKE', '%' . $search . '%');
                 });
             }
 
@@ -57,6 +61,12 @@ class ShopController extends Controller
     /**
      * عرض لوحة التحكم للأدمن (Dashboard)
      */
+    
+
+    public function exportExcel()
+    {
+        return Excel::download(new ShopsExport, 'دليل_خصومات_نقابة_المهندسين.xlsx');
+        }
     public function adminDashboard(Request $request)
     {
         $query = Shop::query();
@@ -87,13 +97,15 @@ class ShopController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'discount' => 'required|string|max:255',
-            'phone'    => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'address'  => 'nullable|string|max:255',
-            'details'  => 'nullable|string',
+            'name'      => 'required|string|max:255',
+            'category'  => 'required|string|max:255',
+            'discount'  => 'required|string|max:255',
+            'location'  => 'nullable|string|max:255',
+            'address'   => 'nullable|string|max:255',
+            'branches'  => 'nullable|string',
+            'facebook'  => 'nullable|url',
+            'instagram' => 'nullable|url',
+            'details'   => 'nullable|string',
         ]);
 
         $validated['address']  = $validated['address'] ?? $validated['location'] ?? 'غير محدد';
@@ -118,14 +130,19 @@ class ShopController extends Controller
     public function update(Request $request, Shop $shop)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'category' => 'required|string|max:255',
-            'discount' => 'required|string|max:255',
-            'phone'    => 'nullable|string|max:255',
-            'location' => 'nullable|string|max:255',
-            'address'  => 'nullable|string|max:255',
-            'details'  => 'nullable|string',
+            'name'      => 'required|string|max:255',
+            'category'  => 'required|string|max:255',
+            'discount'  => 'required|string|max:255',
+            'location'  => 'nullable|string|max:255',
+            'address'   => 'nullable|string|max:255',
+            'branches'  => 'nullable|string',
+            'facebook'  => 'nullable|url',
+            'instagram' => 'nullable|url',
+            'details'   => 'nullable|string',
         ]);
+
+        $validated['address']  = $validated['address'] ?? $validated['location'] ?? 'غير محدد';
+        $validated['location'] = $validated['location'] ?? $validated['address'] ?? 'غير محدد';
 
         $shop->update($validated);
 
@@ -155,6 +172,20 @@ class ShopController extends Controller
         Shop::whereIn('id', $request->ids)->delete();
 
         return redirect()->route('admin.dashboard')->with('success', 'تم حذف المحلات المحددة بنجاح!');
+    }
+
+    /**
+     * عرض صفحة التفاصيل الخاصة بمحل محدد
+     */
+    public function show(Shop $shop)
+    {
+        // جلب محلات أخرى مقترحة من نفس التصنيف (اختياري للعرض)
+        $relatedShops = Shop::where('category', $shop->category)
+            ->where('id', '!=', $shop->id)
+            ->take(3)
+            ->get();
+
+        return view('shops.show', compact('shop', 'relatedShops'));
     }
 
     /**
@@ -223,7 +254,6 @@ class ShopController extends Controller
                         'discount' => mb_substr($discount, 0, 45, 'UTF-8'),
                         'address'  => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
                         'location' => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
-                        'phone'    => null,
                         'details'  => $details ?: null,
                     ]);
                     $importedCount++;

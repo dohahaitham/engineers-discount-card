@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <link rel="icon" type="image/jpeg" href="{{ asset('logo.jpeg') }}?v=3">
-<link rel="shortcut icon" href="{{ asset('logo.jpeg') }}?v=3">
-<link rel="apple-touch-icon" href="{{ asset('logo.jpeg') }}?v=3">
+    <link rel="shortcut icon" href="{{ asset('logo.jpeg') }}?v=3">
+    <link rel="apple-touch-icon" href="{{ asset('logo.jpeg') }}?v=3">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إضافة محل / مؤسسة جديدة</title>
@@ -64,10 +64,31 @@
                            class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 transition">
                 </div>
 
-                <!-- العنوان / الفرع -->
+                <!-- العنوان الرئيسي -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">العنوان / الفرع</label>
-                    <input type="text" name="location" value="{{ old('location') }}" placeholder="مثال: غزة - الرمال"
+                    <label class="block text-sm font-bold text-gray-700 mb-2">العنوان الرئيسي</label>
+                    <input type="text" name="address" value="{{ old('address') }}" placeholder="مثال: غزة - الرمال"
+                           class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 transition">
+                </div>
+
+                <!-- فروع المحل -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">فروع المحل وعناوينها (اختياري)</label>
+                    <textarea name="branches" rows="3" placeholder="مثال:&#10;- فرع الرمال: شارع عمر المختار&#10;- فرع خان يونس: شارع البحر"
+                              class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 transition">{{ old('branches') }}</textarea>
+                </div>
+
+                <!-- رابط الفيسبوك -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">رابط صفحة الفيسبوك (اختياري)</label>
+                    <input type="url" name="facebook" value="{{ old('facebook') }}" placeholder="https://facebook.com/yourpage"
+                           class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 transition">
+                </div>
+
+                <!-- رابط الإنستغرام -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">رابط صفحة الإنستغرام (اختياري)</label>
+                    <input type="url" name="instagram" value="{{ old('instagram') }}" placeholder="https://instagram.com/youraccount"
                            class="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-700 transition">
                 </div>
 
