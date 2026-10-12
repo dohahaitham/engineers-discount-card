@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('shops', function (Blueprint $table) {
             $table->text('branches')->nullable()->after('address');
-            $table->string('facebook')->nullable()->after('phone');
+            $table->string('facebook')->nullable();
             $table->string('instagram')->nullable()->after('facebook');
         });
     }
