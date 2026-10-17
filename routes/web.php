@@ -14,7 +14,8 @@ use App\Models\Shop;
 // 1️⃣ الصفحة الرئيسية
 Route::get('/', function () {
     $totalShopsCount = Shop::count();
-    $shops = Shop::latest()->take(6)->get();
+    // استخدام inRandomOrder لتتغير المحلات بشكل عشوائي ومتجدد مع كل تحديث للصفحة
+    $shops = Shop::inRandomOrder()->take(6)->get();
 
     return view('welcome', compact('totalShopsCount', 'shops'));
 })->name('home');

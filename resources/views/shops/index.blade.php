@@ -51,12 +51,12 @@
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+    <main class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6 flex-1 w-full">
 
-        <!-- القسم الترحيبي وبحث الفلترة -->
-        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-gray-200/80 shadow-xs mb-8">
-            <div class="max-w-3xl mb-6">
-                <h2 class="text-2xl sm:text-3xl font-black text-gray-900 leading-snug mb-2">
+        <!-- القسم الترحيبي -->
+        <div class="bg-white rounded-3xl p-5 sm:p-8 border border-gray-200/80 shadow-xs mb-6">
+            <div class="max-w-3xl mb-4">
+                <h2 class="text-xl sm:text-3xl font-black text-gray-900 leading-snug mb-1 sm:mb-2">
                     دليل الخصومات والمحلات التجارية المعتمدة 🏷️
                 </h2>
                 <p class="text-xs sm:text-sm text-gray-500 leading-relaxed font-medium">
@@ -64,11 +64,12 @@
                 </p>
             </div>
 
-            <!-- نموذج البحث والفلترة -->
-            <form action="{{ route('shops.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                
-                <!-- حقل البحث بحسب الاسم أو العنوان -->
-                <div class="sm:col-span-6 relative">
+            <!-- نموذج البحث السريع -->
+            <form action="{{ route('shops.index') }}" method="GET" class="flex gap-2">
+                @if(request('category'))
+                    <input type="hidden" name="category" value="{{ request('category') }}">
+                @endif
+                <div class="relative flex-1">
                     <input 
                         type="text" 
                         name="search" 
@@ -77,100 +78,115 @@
                         class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition"
                     >
                 </div>
-
-                <!-- قائمة التصنيفات -->
-                <div class="sm:col-span-4">
-                    <select 
-                        name="category" 
-                        class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-xs sm:text-sm rounded-2xl px-4 py-3 focus:outline-none focus:border-indigo-500 focus:bg-white transition"
-                    >
-                        <option value="">جميع التصنيفات</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
-                                {{ $cat }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- أزرار الإرسال والترسيت -->
-                <div class="sm:col-span-2 flex items-center gap-2">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold py-3 px-4 rounded-2xl transition shadow-xs">
-                        بحث
-                    </button>
-
-                    @if(request('search') || request('category'))
-                        <a href="{{ route('shops.index') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold py-3 px-3 rounded-2xl transition text-center">
-                            إلغاء
-                        </a>
-                    @endif
-                </div>
-
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold py-3 px-4 sm:px-6 rounded-2xl transition shadow-xs shrink-0">
+                    بحث
+                </button>
+                @if(request('search') || request('category'))
+                    <a href="{{ route('shops.index') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold py-3 px-3 sm:px-4 rounded-2xl transition flex items-center justify-center shrink-0">
+                        إلغاء
+                    </a>
+                @endif
             </form>
         </div>
 
-        <!-- شبكة عرض المحلات -->
-        @if($shops->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                @foreach($shops as $shop)
-                    <div class="bg-white rounded-3xl p-6 border border-gray-200/80 shadow-xs hover:shadow-md transition flex flex-col justify-between group">
-                        
-                        <div>
-                            <!-- الهيدر الداخلي للكرت: التصنيف ونسبة الخصم -->
-                            <div class="flex items-center justify-between gap-2 mb-4">
-                                <span class="bg-indigo-50 text-indigo-700 text-[11px] font-bold px-3 py-1 rounded-full border border-indigo-100">
-                                    🏷️ {{ $shop->category }}
-                                </span>
+        <!-- تخطيط الصفحة: القائمة الجانبية جانبيّة دائماً في كل الشاشات -->
+        <div class="grid grid-cols-12 gap-3 sm:gap-6 items-start">
+            
+            <!-- القائمة الجانبية للتصنيفات (Sidebar) - تأخذ 4 أعمدة في الموبايل و 3 في الشاشات الأكبر -->
+            <aside class="col-span-4 md:col-span-3 bg-white rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 border border-gray-200/80 shadow-xs sticky top-24">
+                <h3 class="text-xs sm:text-sm font-black text-gray-900 mb-2 sm:mb-4 pb-2 border-b border-gray-100 flex items-center justify-between">
+                    <span>التصنيفات</span>
+                    <span class="hidden sm:inline-block text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">سريع</span>
+                </h3>
+                
+                <div class="flex flex-col space-y-1 max-h-[calc(100vh-220px)] overflow-y-auto pl-0.5">
+                    <!-- زر جميع المحلات -->
+                    <a href="{{ route('shops.index', array_merge(request()->except('category', 'page'))) }}" 
+                       class="w-full text-right px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-bold transition flex items-center justify-between {{ !request('category') ? 'bg-indigo-600 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <span class="truncate">جميع المحلات</span>
+                        <span class="hidden sm:inline">📂</span>
+                    </a>
+
+                    <!-- أزرار التصنيفات -->
+                    @foreach($categories as $cat)
+                        <a href="{{ route('shops.index', array_merge(request()->except('page'), ['category' => $cat])) }}" 
+                           class="w-full text-right px-2 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-bold transition flex items-center justify-between {{ request('category') == $cat ? 'bg-indigo-600 text-white shadow-xs' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            <span class="truncate">{{ $cat }}</span>
+                            <span class="hidden sm:inline shrink-0 text-[10px] opacity-80">🏷️</span>
+                        </a>
+                    @endforeach
+                </div>
+            </aside>
+
+            <!-- محتوى شبكة عرض المحلات - تأخذ 8 أعمدة في الموبايل و 9 في الشاشات الأكبر -->
+            <div class="col-span-8 md:col-span-9">
+                
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <h3 class="text-xs sm:text-sm font-bold text-gray-600">
+                        النتائج: <span class="text-indigo-600 font-black">{{ $shops->count() }}</span> محل
+                    </h3>
+                </div>
+
+                @if($shops->count() > 0)
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+                        @foreach($shops as $shop)
+                            <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-gray-200/80 shadow-xs hover:shadow-md transition flex flex-col justify-between group">
                                 
-                                <span class="bg-rose-500 text-white text-xs font-black px-3 py-1 rounded-xl shadow-2xs">
-                                    {{ Str::contains((string)$shop->discount, 'خصم') ? $shop->discount : 'خصم ' . ($shop->discount ?? 'خاص') }}
-                                </span>
-                            </div>
+                                <div>
+                                    <!-- الهيدر الداخلي للكرت: التصنيف ونسبة الخصم -->
+                                    <div class="flex flex-wrap items-center justify-between gap-1.5 mb-3">
+                                        <span class="bg-indigo-50 text-indigo-700 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-full border border-indigo-100 truncate max-w-[110px] sm:max-w-[150px]">
+                                            🏷️ {{ $shop->category }}
+                                        </span>
+                                        
+                                        <span class="bg-rose-500 text-white text-[10px] sm:text-xs font-black px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg sm:rounded-xl shadow-2xs shrink-0">
+                                            {{ Str::contains((string)$shop->discount, 'خصم') ? $shop->discount : 'خصم ' . ($shop->discount ?? 'خاص') }}
+                                        </span>
+                                    </div>
 
-                            <!-- اسم المحل (تحويل لصفحة التفاصيل عند النقر) -->
-                            <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition mb-3 leading-snug">
-                                <a href="{{ route('shops.show', $shop->id) }}" class="focus:outline-none">
-                                    {{ $shop->name }}
-                                </a>
-                            </h3>
+                                    <!-- اسم المحل -->
+                                    <h3 class="text-sm sm:text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition mb-2 leading-snug">
+                                        <a href="{{ route('shops.show', $shop->id) }}" class="focus:outline-none">
+                                            {{ $shop->name }}
+                                        </a>
+                                    </h3>
 
-                            <!-- تفاصيل العنوان والتواصل -->
-                            <div class="space-y-2 mb-4">
-                                <div class="flex items-start gap-2 text-xs text-gray-600 font-medium">
-                                    <span class="shrink-0">📍</span>
-                                    <span class="line-clamp-2">{{ $shop->address ?? 'غير محدد' }}</span>
+                                    <!-- تفاصيل العنوان والتواصل -->
+                                    <div class="space-y-1 mb-3">
+                                        <div class="flex items-start gap-1 text-[11px] sm:text-xs text-gray-600 font-medium">
+                                            <span class="shrink-0">📍</span>
+                                            <span class="line-clamp-2">{{ $shop->address ?? 'غير محدد' }}</span>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- زر التحويل إلى صفحة التفاصيل الكاملة للمحل -->
+                                <div class="pt-3 border-t border-gray-100">
+                                    <a href="{{ route('shops.show', $shop->id) }}" class="w-full bg-gray-50 hover:bg-indigo-50 text-gray-700 hover:text-indigo-700 text-[11px] sm:text-xs font-bold py-2 sm:py-2.5 px-2 sm:px-4 rounded-xl transition flex items-center justify-center gap-1 border border-gray-100 group-hover:border-indigo-100">
+                                        <span>التفاصيل</span>
+                                        <span>👈</span>
+                                    </a>
+                                </div>
+
                             </div>
-                        </div>
-
-                        <!-- زر التحويل إلى صفحة التفاصيل الكاملة للمحل -->
-                        <div class="pt-4 border-t border-gray-100">
-                            <a href="{{ route('shops.show', $shop->id) }}" class="w-full bg-gray-50 hover:bg-indigo-50 text-gray-700 hover:text-indigo-700 text-xs font-bold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 border border-gray-100 group-hover:border-indigo-100">
-                                <span>عرض تفاصيل الخصم</span>
-                                <span>👈</span>
-                            </a>
-                        </div>
-
+                        @endforeach
                     </div>
-                @endforeach
+
+                @else
+                    <!-- حالة عدم وجود نتائج -->
+                    <div class="bg-white rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center border border-gray-200/80 shadow-xs max-w-md mx-auto my-6 sm:my-12">
+                        <div class="text-4xl sm:text-5xl mb-3">🔍</div>
+                        <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1 sm:mb-2">لا توجد محلات مطابقة</h3>
+                        <p class="text-xs text-gray-500 mb-4 sm:mb-6 font-medium">جرب البحث بكلمات أخرى أو اختر تصنيفاً آخر.</p>
+                        <a href="{{ route('shops.index') }}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition shadow-xs">
+                            عرض جميع المحلات
+                        </a>
+                    </div>
+                @endif
+
             </div>
 
-            <!-- الترقيم والتنقل بين الصفحات -->
-            <div class="mt-8">
-                {{ $shops->links() }}
-            </div>
-
-        @else
-            <!-- حالة عدم وجود نتائج -->
-            <div class="bg-white rounded-3xl p-12 text-center border border-gray-200/80 shadow-xs max-w-md mx-auto my-12">
-                <div class="text-5xl mb-4">🔍</div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2">لا توجد محلات مطابقة للبحث</h3>
-                <p class="text-xs text-gray-500 mb-6 font-medium">جرب البحث بكلمات أخرى أو تغيير الفلتر المختارات.</p>
-                <a href="{{ route('shops.index') }}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 px-6 rounded-xl transition shadow-xs">
-                    عرض جميع المحلات
-                </a>
-            </div>
-        @endif
+        </div>
 
     </main>
 

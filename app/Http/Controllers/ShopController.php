@@ -8,12 +8,10 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Exports\ShopsExport;
 use Maatwebsite\Excel\Facades\Excel;
 
-
-
 class ShopController extends Controller
 {
     /**
-     * عرض دليل المحلات والخصومات مع آلية طباعة الأخطاء الصريحة
+     * عرض دليل المحلات والخصومات بدون تقسيم صفحات وبدعم القائمة الجانبية
      */
     public function index(Request $request)
     {
@@ -31,15 +29,15 @@ class ShopController extends Controller
                 });
             }
 
-            // 2. الفلترة حسب التصنيف
+            // 2. الفلترة حسب التصنيف (القائمة الجانبية)
             if ($request->filled('category')) {
                 $query->where('category', trim($request->category));
             }
 
-            // 3. الترقيم والتنقل
-            $shops = $query->latest()->paginate(12)->appends($request->all());
+            // 3. جلب جميع المحلات دفعة واحدة في صفحة واحدة بدون paginate
+            $shops = $query->latest()->get();
 
-            // 4. جلب التصنيفات
+            // 4. جلب التصنيفات الفريدة للقائمة الجانبية
             $categories = Shop::whereNotNull('category')
                 ->where('category', '!=', '')
                 ->pluck('category')
@@ -48,7 +46,7 @@ class ShopController extends Controller
             return view('shops.index', compact('shops', 'categories'));
 
         } catch (\Throwable $e) {
-            // طباعة سبب الخطأ الحقيقي مباشرة في المتصفح
+            // طباعة سبب الخطأ الحقيقي مباشرة في المتصفح في حال حدثت مشكلة
             dd([
                 'ErrorMessage' => $e->getMessage(),
                 'File'         => $e->getFile(),
@@ -59,14 +57,16 @@ class ShopController extends Controller
     }
 
     /**
-     * عرض لوحة التحكم للأدمن (Dashboard)
+     * تصدير ملف Excel
      */
-    
-
     public function exportExcel()
     {
         return Excel::download(new ShopsExport, 'دليل_خصومات_نقابة_المهندسين.xlsx');
-        }
+    }
+
+    /**
+     * عرض لوحة التحكم للأدمن (Dashboard)
+     */
     public function adminDashboard(Request $request)
     {
         $query = Shop::query();
@@ -208,7 +208,7 @@ class ShopController extends Controller
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
 
-            if (empty($rows)) {
+            if (empty(empty($rows) ? null : $rows)) { // حماية إضافية للتحقق
                 return redirect()->back()->with('error', 'ملف الإكسل فارغ!');
             }
 
@@ -221,40 +221,26 @@ class ShopController extends Controller
                     continue;
                 }
 
-                $name     = isset($row[0]) ? trim((string)$row[0]) : null;
-                $category = isset($row[1]) ? trim((string)$row[1]) : 'عام';
-                
-                $colC = isset($row[2]) ? trim((string)$row[2]) : '';
-                $colD = isset($row[3]) ? trim((string)$row[3]) : '';
-                $colE = isset($row[4]) ? trim((string)$row[4]) : '';
-
-                $discount = 'خصم خاص';
-                $location = 'غير محدد';
-                $details  = null;
-
-                if (is_numeric($colC)) {
-                    $val = (float)$colC;
-                    $discount = ($val > 0 && $val <= 1) ? round($val * 100) . '%' : $val . '%';
-                    $location = $colD;
-                    $details  = $colE;
-                } elseif (preg_match('/^\d+(\s*-\s*\d+)?\s*%?$/', $colC) || strlen($colC) <= 15) {
-                    $discount = $colC ?: 'خصم خاص';
-                    $location = $colD;
-                    $details  = $colE;
-                } else {
-                    $discount = 'خصم خاص';
-                    $location = $colC;
-                    $details  = trim($colD . ' ' . $colE);
-                }
+                $name      = isset($row[0]) ? trim((string)$row[0]) : null;
+                $category  = isset($row[1]) ? trim((string)$row[1]) : 'عام';
+                $discount  = isset($row[2]) ? trim((string)$row[2]) : 'خصم خاص';
+                $location  = isset($row[3]) ? trim((string)$row[3]) : 'غير محدد';
+                $branches  = isset($row[4]) ? trim((string)$row[4]) : null;
+                $details   = isset($row[5]) ? trim((string)$row[5]) : null;
+                $facebook  = isset($row[6]) ? trim((string)$row[6]) : null;
+                $instagram = isset($row[7]) ? trim((string)$row[7]) : null;
 
                 if (!empty($name)) {
                     Shop::create([
-                        'name'     => $name,
-                        'category' => $category ?: 'عام',
-                        'discount' => mb_substr($discount, 0, 45, 'UTF-8'),
-                        'address'  => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
-                        'location' => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
-                        'details'  => $details ?: null,
+                        'name'      => $name,
+                        'category'  => $category ?: 'عام',
+                        'discount'  => mb_substr($discount, 0, 45, 'UTF-8'),
+                        'address'   => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
+                        'location'  => mb_substr($location ?: 'غير محدد', 0, 191, 'UTF-8'),
+                        'branches'  => $branches,
+                        'details'   => $details,
+                        'facebook'  => $facebook,
+                        'instagram' => $instagram,
                     ]);
                     $importedCount++;
                 }
